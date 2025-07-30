@@ -40,32 +40,13 @@ extern int init_system();
 extern int init_system_thread();
 extern gboolean handle_udev(GIOChannel *source, GIOCondition condition, gpointer user_data) ;
 
-
-static gboolean verbose = FALSE;
-static GOptionEntry entries[] =
-{
-  { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, "Be verbose", NULL },
-  { NULL }
-};
-
-
 int main(int argc, char **argv) {
-    GError *error = NULL;
-    GOptionContext *context;
     int ret;
-
-    context = g_option_context_new("- usbc daemon");
-    g_option_context_add_main_entries(context, entries, NULL);
-    if (!g_option_context_parse(context, &argc, &argv, &error)) {
-        g_print("option parsing failed: %s\n", error->message);
-        exit(EXIT_FAILURE);
-    }
-
 
     ret = init_system();
 
     if(ret <0){
-        fprintf(stderr, "unable to init system\n");
+        g_log(NULL, G_LOG_LEVEL_ERROR, "unable to init system");
         exit(EXIT_FAILURE);
     }
 

@@ -74,7 +74,7 @@ int handle_charger_notification(struct udev_device *dev) {
         long int voltage_now = strtol(voltage_now_str, NULL, 10);
         long int current_now = strtol(current_now_str, NULL, 10);
         long int power_now = voltage_now * current_now;
-        g_log(NULL, G_LOG_LEVEL_INFO, "Power Supply: voltage_now=%ld, current_now=%ld, power_now=%ld", voltage_now, current_now, power_now);
+        g_log(NULL, G_LOG_LEVEL_DEBUG, "Power Supply: voltage_now=%ld, current_now=%ld, power_now=%ld", voltage_now, current_now, power_now);
 
 	if (!power_now)
 		return 1; //power_now zero means invalid
@@ -90,13 +90,13 @@ int handle_charger_notification(struct udev_device *dev) {
         char buffer[256];
         if (fgets(buffer, sizeof(buffer), file) != NULL) {
             long int reqd_power = strtol(buffer, NULL, 10);
-            g_log(NULL, G_LOG_LEVEL_INFO, "Required Power: reqd_power=%ld", reqd_power);
+            g_log(NULL, G_LOG_LEVEL_DEBUG, "Required Power: reqd_power=%ld", reqd_power);
 
             // Check if power_now is greater than or less than reqd_power
             if (power_now > reqd_power) {
-                g_log(NULL, G_LOG_LEVEL_INFO, "Power now (%ld) is greater than required power (%ld)", power_now, reqd_power);
+                g_log(NULL, G_LOG_LEVEL_DEBUG, "Power now (%ld) is greater than required power (%ld)", power_now, reqd_power);
             } else {
-                g_log(NULL, G_LOG_LEVEL_INFO, "Power now (%ld) is less than required power (%ld)", power_now, reqd_power);
+                g_log(NULL, G_LOG_LEVEL_INFO, "Power now (%ld) is less than required power (%ld) - may charge slowly", power_now, reqd_power);
                 // Create a notification for low power source
                 handle_notification("Connected low power source", "Device may charge very slowly");
             }
