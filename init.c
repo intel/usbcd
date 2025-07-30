@@ -38,31 +38,59 @@
 #include <glib/gprintf.h>
 
 void log_handler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data) {
-    g_printf("%s\n", message);
+    // Get the configured log level from user_data
+    GLogLevelFlags configured_level = GPOINTER_TO_INT(user_data);
+    
+    // GLib log levels: DEBUG=7, INFO=6, MESSAGE=5, WARNING=4, CRITICAL=3, ERROR=2
+    // Lower numeric values are more severe, so we print if log_level <= configured_level
+    if (log_level <= configured_level) {
+        g_printf("[%s] %s\n", 
+                 (log_level == G_LOG_LEVEL_DEBUG) ? "DEBUG" :
+                 (log_level == G_LOG_LEVEL_INFO) ? "INFO" :
+                 (log_level == G_LOG_LEVEL_MESSAGE) ? "MESSAGE" :
+                 (log_level == G_LOG_LEVEL_WARNING) ? "WARNING" :
+                 (log_level == G_LOG_LEVEL_CRITICAL) ? "CRITICAL" :
+                 (log_level == G_LOG_LEVEL_ERROR) ? "ERROR" : "UNKNOWN",
+                 message);
+        fflush(stdout);
+    }
 }
 
 static void update_daemon_conf()
 {
     GKeyFile *keyfile = g_key_file_new();
+    GLogLevelFlags configured_level = G_LOG_LEVEL_INFO; // Default to info
+    
     if (g_key_file_load_from_file(keyfile, "usbcd.conf", G_KEY_FILE_NONE, NULL)) {
         gchar *log_level = g_key_file_get_string(keyfile, "general", "LogLevel", NULL);
         if (g_strcmp0(log_level, "debug") == 0) {
-            g_log_set_handler(NULL, G_LOG_LEVEL_DEBUG | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION, log_handler, NULL);
+            configured_level = G_LOG_LEVEL_DEBUG;
         } else if (g_strcmp0(log_level, "info") == 0) {
-            g_log_set_handler(NULL, G_LOG_LEVEL_INFO | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION, log_handler, NULL);
-        } else {
-            g_log_set_handler(NULL, G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION, log_handler, NULL);
+            configured_level = G_LOG_LEVEL_INFO;
+        } else if (g_strcmp0(log_level, "warning") == 0) {
+            configured_level = G_LOG_LEVEL_WARNING;
         }
         g_free(log_level);
     } else {
         g_log(NULL, G_LOG_LEVEL_WARNING, "Failed to load configuration file: usbcd.conf");
     }
+    
+    // Set handler for all log levels, but filter in the handler based on configured level
+    g_log_set_handler(NULL, 
+                      G_LOG_LEVEL_DEBUG | G_LOG_LEVEL_INFO | G_LOG_LEVEL_MESSAGE | 
+                      G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_ERROR |
+                      G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION, 
+                      log_handler, 
+                      GINT_TO_POINTER(configured_level));
+    
     g_key_file_free(keyfile);
 }
 
 int init_system()
 {
     update_daemon_conf();
-    // Other initialization code...
+    
+    g_log(NULL, G_LOG_LEVEL_INFO, "USB-C daemon initialized successfully");
+    
     return 0;
 }
