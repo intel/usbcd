@@ -46,7 +46,7 @@ int usbcd_udev_parser(struct udev_device *dev) {
     	const char *interfaceClass = udev_device_get_sysattr_value(dev, "bInterfaceClass");
 	if (interfaceClass && strcmp(interfaceClass, "11") == 0) {
             g_log(NULL, G_LOG_LEVEL_INFO, "Billboard scenario");
-            return handle_billboard_enumeration();
+            return handle_billboard_enumeration(dev);
 	}
     } else if (strcmp(subsystem, "power_supply") == 0 && strcmp(action, "remove") != 0) {
         return handle_charger_notification(dev);
