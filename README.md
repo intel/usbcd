@@ -18,7 +18,7 @@ This project requires the following libraries and development tools:
 - glib-2.0 (GLib utilities and data structures)
 - libnotify (Desktop notifications)
 
-## Installation on Ubuntu 24.04
+## Installation on Ubuntu 24.04 / Ubuntu 26.04
 
 ### 1. Update System Packages
 ```bash
